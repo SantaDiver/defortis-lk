@@ -1,0 +1,7 @@
+Django>=1.11,<2.0
+django-simple-history
+httplib2
+apiclient
+google-api-python-client
+xlrd
+xlutils
