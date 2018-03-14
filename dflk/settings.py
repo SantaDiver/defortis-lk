@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -76,13 +77,22 @@ WSGI_APPLICATION = 'dflk.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'HOST': 'db',
+        'PORT': 5432,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -108,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-RU'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -121,3 +131,47 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = '/static'
+
+# Celery settings
+
+REDIS_PORT = 6379
+REDIS_DB = 0
+REDIS_HOST = os.environ.get('REDIS_PORT_6379_TCP_ADDR', 'redis')
+
+RABBIT_HOSTNAME = os.environ.get('RABBIT_PORT_5672_TCP', 'rabbit')
+
+if RABBIT_HOSTNAME.startswith('tcp://'):
+    RABBIT_HOSTNAME = RABBIT_HOSTNAME.split('//')[1]
+
+CELERY_BROKER_URL = os.environ.get('BROKER_URL', '')
+if not CELERY_BROKER_URL:
+    CELERY_BROKER_URL = 'amqp://{user}:{password}@{hostname}/{vhost}/'.format(
+        user=os.environ.get('RABBIT_ENV_USER', 'admin'),
+        password=os.environ.get('RABBIT_ENV_RABBITMQ_PASS', 'mypass'),
+        hostname=RABBIT_HOSTNAME,
+        vhost=os.environ.get('RABBIT_ENV_VHOST', ''))
+
+CELERY_IGNORE_RESULT = True
+CELERY_SEND_TASK_ERROR_EMAILS = False
+CELERY_ACKS_LATE = True
+
+# CELERY_RESULT_BACKEND = 'db+sqlite:///results.sqlite'
+# Set redis as celery result backend
+CELERY_RESULT_BACKEND = 'redis://%s:%d/%d' % (REDIS_HOST, REDIS_PORT, REDIS_DB)
+CELERY_REDIS_MAX_CONNECTIONS = 1
+
+#: Only add pickle to this list if your broker is secured
+#: from unwanted access (see userguide/security.html)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+CELERYD_HIJACK_ROOT_LOGGER = False
+
+CELERY_TIMEZONE = 'Europe/Moscow'
+CELERY_BEAT_SCHEDULE = {
+    'task_number_one': {
+        'task': 'parea.tasks.task_number_one',
+        'schedule': timedelta(seconds=25)
+    }
+}

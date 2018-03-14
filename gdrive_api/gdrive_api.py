@@ -92,7 +92,7 @@ class gdriveAPI(object):
             'mimeType': 'application/vnd.google-apps.folder',
         }
         if parent_id:
-            if parent_id is list:
+            if type(parent_id) is list:
                 folder_metadata['parents'] = parent_id
             else:
                 folder_metadata['parents'] = [parent_id,]
@@ -127,9 +127,22 @@ class gdriveAPI(object):
         return result
 
     def give_permissions(self, file_id, user_permissions):
+        if not user_permissions:
+            return
         service = self.service
+
+        def callback(request_id, response, exception):
+            if exception:
+                # Handle error
+                # print (exception)
+                pass
+            else:
+                # print ("Permission Id: %s" % response.get('id'))
+                pass
+
+        # batch = service.new_batch_http_request(callback=callback)
         batch = service.new_batch_http_request()
-        if not user_permissions is list:
+        if not type(user_permissions) is list:
             user_permissions = [user_permissions]
         for user_permission in user_permissions:
             batch.add(service.permissions().create(
@@ -138,3 +151,51 @@ class gdriveAPI(object):
                     fields='id',
             ))
         batch.execute()
+
+    def get_permited_emails(self, file_id):
+        service = self.service
+        page_token = None
+        result = []
+        while True:
+            try:
+                response = service.permissions().list(
+                    fileId = file_id,
+                    fields='nextPageToken, permissions(emailAddress)',
+                    pageToken=page_token
+                ).execute()
+            except:
+                return []
+            for permission in response.get('permissions', []):
+                if 'emailAddress' in permission:
+                    result.append(permission['emailAddress'])
+            page_token = response.get('nextPageToken', None)
+            if page_token is None:
+                break
+
+        return result
+
+    def get_start_changes_token(self):
+        service = self.service
+        response = service.changes().getStartPageToken().execute()
+        return response.get('startPageToken')
+
+    def get_changes(self, page_token):
+        service = self.service
+        saved_start_page_token = None
+        result = []
+        while page_token is not None:
+            response = service.changes().list(
+                pageToken=page_token,
+                spaces='drive'
+            ).execute()
+            # for change in response.get('changes'):
+            #     # Process change
+            #     print ('Change found for file: %s' % change.get('fileId'))
+            #     print(change)
+            result += response.get('changes', [])
+            if 'newStartPageToken' in response:
+                # Last page, save this token for the next polling interval
+                saved_start_page_token = response.get('newStartPageToken')
+            page_token = response.get('nextPageToken')
+
+        return result, saved_start_page_token

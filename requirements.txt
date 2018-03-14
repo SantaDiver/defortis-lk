@@ -5,3 +5,7 @@ apiclient
 google-api-python-client
 xlrd
 xlutils
+psycopg2
+celery
+redis
+gunicorn
