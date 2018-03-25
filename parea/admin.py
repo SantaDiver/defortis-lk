@@ -4,6 +4,8 @@ from simple_history.admin import SimpleHistoryAdmin
 from django import forms
 from pprint import pprint
 import sys
+from django.contrib.postgres.fields import JSONField
+from prettyjson import PrettyJSONWidget
 
 sys.path.insert(0, './gdrive_api')
 sys.path.insert(0, './parea')
@@ -22,8 +24,10 @@ class MyAdmin(SimpleHistoryAdmin):
 class ProjectObjectForm(forms.ModelForm):
     class Meta:
         model = ProjectObject
-        fields = ['name', 'folder_id', 'project', 'main_file', 'list1_id',
-            'list2_id', 'list3_id']
+        fields = '__all__'
+        widgets = {
+            'files_structure': PrettyJSONWidget(),
+        }
 
     def __init__(self, *args, **kwargs):
         super(ProjectObjectForm, self).__init__(*args, **kwargs)
@@ -42,24 +46,6 @@ class ProjectObjectForm(forms.ModelForm):
             return None
         else:
             return self.cleaned_data['main_file']
-
-    def clean_list1_id(self):
-        if self.cleaned_data['list1_id'] == "":
-            return None
-        else:
-            return self.cleaned_data['list1_id']
-
-    def clean_list2_id(self):
-        if self.cleaned_data['list2_id'] == "":
-            return None
-        else:
-            return self.cleaned_data['list2_id']
-
-    def clean_list3_id(self):
-        if self.cleaned_data['list3_id'] == "":
-            return None
-        else:
-            return self.cleaned_data['list3_id']
 
 @admin.register(ProjectObject)
 class MyAdmin(SimpleHistoryAdmin):

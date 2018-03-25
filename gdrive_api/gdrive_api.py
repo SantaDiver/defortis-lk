@@ -73,9 +73,16 @@ class gdriveAPI(object):
         # print ('File ID: %s' % file.get('id'))
         return file.get('id')
 
-    def upload_file(self, upload_name, file_name, mimetype):
+    def upload_file(self, upload_name, file_name, mimetype, parent_id=None):
         service = self.service
         file_metadata = {'name': upload_name}
+
+        if parent_id:
+            if type(parent_id) is list:
+                file_metadata['parents'] = parent_id
+            else:
+                file_metadata['parents'] = [parent_id,]
+
         media = MediaFileUpload(file_name, mimetype=mimetype)
         file = service.files().create(
             body=file_metadata,
@@ -199,3 +206,69 @@ class gdriveAPI(object):
             page_token = response.get('nextPageToken')
 
         return result, saved_start_page_token
+
+    def get_file_by_id(self, file_id):
+        service = self.service
+        response = service.files().get(
+            fileId=file_id,
+            fields='id, name, webContentLink'
+        ).execute()
+        return response
+
+    def split_main_file(self, pobject, sys_val, full_file_name):
+        service = self.service
+
+        file_id = pobject.main_file
+        self.download_file(file_id, full_file_name, False)
+        wb = xlrd.open_workbook(full_file_name, on_demand=True)
+
+        result = []
+        targetdir = ('./') #where you want your new files
+        for sheet in wb.sheets(): #cycles through each sheet in each workbook
+            newwb = copy(wb) #makes a temp copy of that book
+            newwb._Workbook__worksheets = [ worksheet for worksheet in \
+                newwb._Workbook__worksheets if worksheet.name == sheet.name ]
+            #brute force, but strips away all other sheets apart from the sheet being looked at
+            part_name = targetdir + full_file_name.split('.')[0] + '-' + sheet.name
+            part_xls_name = part_name + '.xls'
+            newwb.save(part_xls_name)
+            #saves each sheet as the original file name plus the sheet name
+            id = self.upload_spreadsheet(part_name, part_xls_name)
+
+            pdf_name = part_name + '.pdf'
+            self.download_file(id, pdf_name, True)
+            pdf_id = self.upload_file(
+                part_name.split('/')[1],
+                pdf_name,
+                'application/pdf',
+                sys_val.hidden_folder
+            )
+
+            os.remove(pdf_name)
+            os.remove(part_name + '.xls')
+            service.files().delete(fileId=id).execute()
+
+            batch = service.new_batch_http_request()
+            user_permission = {
+                'type': 'anyone',
+                'role': 'reader',
+            }
+            batch.add(service.permissions().create(
+                    fileId=pdf_id,
+                    body=user_permission,
+                    fields='id',
+            ))
+            batch.execute()
+
+            response = self.get_file_by_id(pdf_id)
+
+            result.append(response)
+
+        os.remove(full_file_name)
+        return result
+
+    def delete_files(self, files):
+        service = self.service
+        for file in files:
+            if 'id' in file:
+                service.files().delete(fileId=file['id']).execute()

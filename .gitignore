@@ -1,4 +1,4 @@
-
+*.sqlite3
 *.pyc
 *~
 __pycache__
@@ -9,3 +9,4 @@ myvenv
 nohup.out
 *.sqlite
 *.pid
+celerybeat-schedule

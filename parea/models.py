@@ -5,12 +5,13 @@ from django.dispatch import receiver
 import sys
 from pprint import pprint
 from django.core.exceptions import ValidationError
+from django.contrib.postgres.fields import JSONField
 
+from .utils import root_folder_name, hidden_folder_name
 sys.path.insert(0, './gdrive_api')
 sys.path.insert(0, './parea')
 from gdrive_api import gdriveAPI
 # Create your models here.
-
 
 class Project(models.Model):
     name = models.CharField(
@@ -96,37 +97,28 @@ class ProjectObject(models.Model):
         verbose_name='Основная таблица'
     )
 
-    list1_id = models.CharField(
+    files_structure = JSONField(default={
+        'graphs' : [],
+    }, blank=True)
+
+    sync_task_id = models.CharField(
         max_length=50,
         blank=True,
         null=True,
         default=None,
         unique=True,
-        db_index=True,
-        verbose_name='ID 1 листа'
+        verbose_name='ID задачи синхронизации'
     )
 
-    list2_id = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        default=None,
-        unique=True,
-        db_index=True,
-        verbose_name='ID 2 листа'
-    )
-
-    list3_id = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        default=None,
-        unique=True,
-        db_index=True,
-        verbose_name='ID 3 листа'
+    synced = models.BooleanField(
+        default=False,
+        verbose_name='Синхронизировано'
     )
 
     history = HistoricalRecords()
+
+    def get_synceing(self):
+        return self.sync_task_id!=None
 
 @receiver(models.signals.post_save, sender=ProjectObject)
 def prj_obj_call_save(sender, instance, created, *args, **kwargs):
@@ -179,7 +171,7 @@ class SystemValues(models.Model):
 def sys_vals_call_save(sender, instance, created, *args, **kwargs):
     if created and not instance.parent_folder:
         gdrive = gdriveAPI()
-        instance.parent_folder = gdrive.create_folder('Корневая папка')
-        instance.hidden_folder = gdrive.create_folder('Скрытая папка')
+        instance.parent_folder = gdrive.create_folder(root_folder_name)
+        instance.hidden_folder = gdrive.create_folder(hidden_folder_name)
         instance.changes_token = gdrive.get_start_changes_token()
         instance.save()

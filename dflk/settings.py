@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'parea',
     'simple_history',
+    'prettyjson',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -155,6 +157,7 @@ if not CELERY_BROKER_URL:
 CELERY_IGNORE_RESULT = True
 CELERY_SEND_TASK_ERROR_EMAILS = False
 CELERY_ACKS_LATE = True
+ELERYD_TASK_SOFT_TIME_LIMIT = 300
 
 # CELERY_RESULT_BACKEND = 'db+sqlite:///results.sqlite'
 # Set redis as celery result backend
@@ -169,9 +172,19 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERYD_HIJACK_ROOT_LOGGER = False
 
 CELERY_TIMEZONE = 'Europe/Moscow'
-CELERY_BEAT_SCHEDULE = {
-    'task_number_one': {
-        'task': 'parea.tasks.task_number_one',
-        'schedule': timedelta(seconds=25)
-    }
+# CELERY_BEAT_SCHEDULE = {
+#     'check_main_file_changes_task': {
+#         'task': 'parea.tasks.check_main_file_changes_task',
+#         'schedule': timedelta(seconds=30)
+#     }
+# }
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    )
 }
