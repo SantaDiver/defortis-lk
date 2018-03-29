@@ -3,6 +3,9 @@ from celery import task
 from parea.models import Project, ProjectObject, SystemValues
 from pprint import pprint
 from celery import Task
+from datetime import datetime
+import pytz
+from django.conf import settings
 
 from gdrive_api import gdriveAPI
 from utils import versions_number
@@ -86,6 +89,12 @@ def sync_main_file_task(self, prj_object_id):
     except Exception as exc:
         self.retry(countdown=backoff(self.request.retries), exc=exc)
 
+    timezone = settings.TIME_ZONE
+    now = datetime.now(pytz.timezone(timezone))
+    res = {
+        'timestamp' : now.timestamp(),
+        'links' : res,
+    }
     if len(graphs) >= versions_number:
         gdrive.delete_files(graphs[-1])
         graphs = graphs[-1:] + graphs[:-1]

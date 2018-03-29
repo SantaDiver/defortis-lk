@@ -244,9 +244,9 @@ class gdriveAPI(object):
                 sys_val.hidden_folder
             )
 
-            os.remove(pdf_name)
-            os.remove(part_name + '.xls')
-            service.files().delete(fileId=id).execute()
+            # os.remove(pdf_name)
+            # os.remove(part_name + '.xls')
+            # service.files().delete(fileId=id).execute()
 
             batch = service.new_batch_http_request()
             user_permission = {
@@ -264,7 +264,7 @@ class gdriveAPI(object):
 
             result.append(response)
 
-        os.remove(full_file_name)
+        # os.remove(full_file_name)
         return result
 
     def delete_files(self, files):

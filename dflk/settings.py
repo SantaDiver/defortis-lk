@@ -135,6 +135,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = '/static'
 
+LOGIN_URL = '/login'
+LOGOUT_REDIRECT_URL = '/login'
+
 # Celery settings
 
 REDIS_PORT = 6379
@@ -184,7 +187,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     )
 }

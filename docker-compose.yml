@@ -13,13 +13,13 @@ services:
       - ./static:/static
     depends_on:
       - web
-    restart: always
+    restart: unless-stopped
 
   # Redis - result backend
   redis:
     image: redis:2.8.19
     hostname: redis
-    restart: always
+    restart: unless-stopped
 
   # RabbitMQ - queue
   rabbit:
@@ -31,13 +31,13 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"  # here, we can access rabbitmq management plugin
-    restart: always
+    restart: unless-stopped
 
   db:
     image: postgres
     volumes:
         - postgres:/var/lib/postgresql/data
-    restart: always
+    restart: unless-stopped
 
   web:
     build: .
@@ -59,7 +59,7 @@ services:
     links:
       - rabbit
       - redis
-    restart: always
+    restart: unless-stopped
 
   # Celery worker
   celery_worker:
@@ -74,7 +74,7 @@ services:
       - redis
     depends_on:
       - rabbit
-    restart: always
+    restart: unless-stopped
 
   # Celery beat
   celery_beat:
@@ -89,7 +89,7 @@ services:
       - redis
     depends_on:
       - rabbit
-    restart: always
+    restart: unless-stopped
 
 volumes:
     postgres:

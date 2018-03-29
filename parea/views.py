@@ -10,6 +10,8 @@ from django.views.generic import View
 from django.utils.decorators import method_decorator
 from pprint import pprint
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import redirect
 
 
 from gdrive_api import gdriveAPI
@@ -27,7 +29,8 @@ def check_permissions(func):
         return func(self, request, prj_object_id, *args, **kwargs)
     return func_wrapper
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
+# @method_decorator(login_required, name='dispatch')
 class SyncView(View):
     @check_permissions
     def get(self, request, prj_object_id, *args, **kwargs):
@@ -39,9 +42,8 @@ class SyncView(View):
             return HttpResponse('Has changes', status=202)
         return HttpResponse('Synced', status=200)
 
-    @check_permissions
+    # @check_permissions
     def post(self, request, prj_object_id, *args, **kwargs):
-        print('wtf!')
         prj_object = get_object_or_404(ProjectObject, id=prj_object_id)
         prj = prj_object.project
         if prj_object.synced:
@@ -54,3 +56,21 @@ class SyncView(View):
         prj_object.save()
 
         return HttpResponse(status=200)
+
+class LoginView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'parea/login.html')
+
+    def post(self, request, *args, **kwargs):
+        username = request.POST.get('username', '')
+        password = request.POST.get('password', '')
+        user = authenticate(username=username, password=password)
+        if user is not None and user.is_active:
+            login(request, user)
+            return redirect('/')
+
+        return render(request, 'parea/login.html')
+
+def log_user_out(request):
+    logout(request)
+    return redirect('login')

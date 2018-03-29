@@ -2,7 +2,6 @@ from rest_framework import generics
 from parea.models import Project, ProjectObject
 from .serializers import ProjectSerializer, PrjObjectsSerializer
 from django.http import Http404
-from rest_framework import status
 
 class ProjectsListView(generics.ListAPIView):
     lookup_field = 'pk'
@@ -36,9 +35,6 @@ class PrjObjectsDetailView(generics.RetrieveAPIView):
         pk = self.kwargs.get('pk')
         try:
             obj = ProjectObject.objects.get(pk=pk)
-            print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-            print(self.request.user in obj.project.allowed_users.all())
-            print('#############################')
             if not self.request.user in obj.project.allowed_users.all():
                 raise Http404
             else:

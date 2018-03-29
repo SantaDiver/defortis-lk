@@ -26,7 +26,7 @@ except ImportError:
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/drive-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/drive'
-CLIENT_SECRET_FILE = 'client_secret.json'
+CLIENT_SECRET_FILE = '../client_secret.json'
 APPLICATION_NAME = 'Drive API Python Quickstart'
 
 def get_credentials():
@@ -55,6 +55,8 @@ def download_file(service, file_id, file_name, spreadsheet):
         if spreadsheet:
             request = service.files().export_media(fileId=file_id,
                                                     mimeType='application/pdf')
+        # application/pdf
+        # application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
         else:
             request = service.files().get_media(fileId=file_id)
         downloader = MediaIoBaseDownload(fh, request)
@@ -103,119 +105,12 @@ def main():
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('drive', 'v3', http=http)
 
-    # return
+    file_id = '1452hLMZYc0Y9wBHzOk-yZuIJhuX1Pp__TAeHG2y_-M8'
 
-    # results = service.files().list(
-    #     pageSize=3,fields="nextPageToken, files(id, name)").execute()
-    # items = results.get('files', [])
-    # if not items:
-    #     print('No files found.')
-    # else:
-    #     print('Files:')
-    #     for item in items:
-    #         print('{0} ({1})'.format(item['name'], item['id']))
-
-    # page_token = None
-    # while True:
-    #     response = service.files().list(
-    #         q="name contains 'test2' and + \
-    #         mimeType = 'application/vnd.google-apps.folder'and \
-    #         trashed != True",
-    #
-    #         spaces='drive',
-    #         fields='nextPageToken, files(id, name, modifiedTime, webContentLink)',
-    #         pageToken=page_token
-    #     ).execute()
-    #     response = service.files().list(
-    #         q='mimeType = "application/vnd.google-apps.document" and \
-    #             parents in "0BwbYJirXwPy5bzZtUXN2dVU5WjA"',
-    #         spaces='drive',
-    #         fields='nextPageToken, files(id, name, modifiedTime, webContentLink)',
-    #         pageToken=page_token,
-    #     ).execute()
-    #     r = service.files().get(
-    #         fileId=file.get('id')
-    #     ).execute()
-    #     for file in response.get('files', []):
-    #         # Process change
-    #         print (('Found file: %s (%s)') % (file.get('name'), file.get('id')))
-    #         pprint(file.get('webContentLink'))
-    #     page_token = response.get('nextPageToken', None)
-    #     if page_token is None:
-    #         break
-
-    # folder_metadata = {
-    #     'name': 'Корневая директория',
-    #     # 'parents': ['0BwbYJirXwPy5bzZtUXN2dVU5WjA'],
-    #     'mimeType': 'application/vnd.google-apps.folder',
-    # }
-    # create_folder = service.files().create(body=folder_metadata, fields='id').execute()
-    # pprint(create_folder)
-
-    full_file_name = 'some.xls'
-    file_id = '18-rnNJNYKjlNtqZIBeFKgPh1oXbzUw8c'
-
-    download_file(service, file_id, full_file_name, False)
-    wb = xlrd.open_workbook(full_file_name, on_demand=True)
-
-    targetdir = ('./') #where you want your new files
-    for sheet in wb.sheets(): #cycles through each sheet in each workbook
-        newwb = copy(wb) #makes a temp copy of that book
-        newwb._Workbook__worksheets = [ worksheet for worksheet in \
-            newwb._Workbook__worksheets if worksheet.name == sheet.name ]
-        #brute force, but strips away all other sheets apart from the sheet being looked at
-        part_name = targetdir + full_file_name.split('.')[0] + '-' + sheet.name
-        part_xls_name = part_name + '.xls'
-        newwb.save(part_xls_name)
-        #saves each sheet as the original file name plus the sheet name
-        id = upload_spreadsheet(service, part_name, part_xls_name)
-
-        pdf_name = part_name + '.pdf'
-        download_file(service, id, pdf_name, True)
-        pdf_id = upload_file(service, part_name.split('/')[1], pdf_name, 'application/pdf')
-
-        os.remove(pdf_name)
-        os.remove(part_name + '.xls')
-        service.files().delete(fileId=id).execute()
-
-        batch = service.new_batch_http_request(callback=callback)
-        user_permission = {
-            'type': 'anyone',
-            'role': 'reader',
-        }
-        batch.add(service.permissions().create(
-                fileId=pdf_id,
-                body=user_permission,
-                fields='id',
-        ))
-        batch.execute()
-
-        response = service.files().get(
-            fileId=pdf_id,
-            fields='id, name, webContentLink'
-        ).execute()
-
-        pprint(response)
-
-    os.remove(full_file_name)
-
-    # response = drive_service.changes().getStartPageToken().execute()
-    # print 'Start token: %s' % response.get('startPageToken')
-
-    # page_token = '688457'
-    # while page_token is not None:
-    #     response = service.changes().list(pageToken=page_token,
-    #                                         spaces='drive').execute()
-    #     for change in response.get('changes'):
-    #         # Process change
-    #         print ('Change found for file: %s' % change.get('fileId'))
-    #     if 'newStartPageToken' in response:
-    #         # Last page, save this token for the next polling interval
-    #         saved_start_page_token = response.get('newStartPageToken')
-    #         pprint(saved_start_page_token)
-    #     page_token = response.get('nextPageToken')
-
-
+    full_file_name = 'some.pdf'
+    print('downloading...')
+    download_file(service, file_id, full_file_name, True)
+    print('downloaded')
 
 if __name__ == '__main__':
     main()
