@@ -21,16 +21,30 @@ class gdriveAPI(object):
     CREDENTIALS_FOLDER = './credentials'
 
     def __init__(self):
-        credentials = self.get_credentials()
+        credentials = self.get_credentials('drive-creds.json')
         http = credentials.authorize(httplib2.Http())
-        self.service = discovery.build('drive', 'v3', http=http)
+        self.service = discovery.build(
+            'drive',
+            'v3',
+            http=http
+        )
 
-    def get_credentials(self):
+        credentials = self.get_credentials('sheets-creds.json')
+        http = credentials.authorize(httplib2.Http())
+        discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
+                        'version=v4')
+        self.spr_service = discovery.build(
+            'sheets',
+            'v4',
+            http=http,
+            discoveryServiceUrl=discoveryUrl
+        )
+
+    def get_credentials(self, file_name):
         credential_dir = self.CREDENTIALS_FOLDER
         if not os.path.exists(credential_dir):
             os.makedirs(credential_dir)
-        credential_path = os.path.join(credential_dir,
-                                       'drive-python-quickstart.json')
+        credential_path = os.path.join(credential_dir, file_name)
 
         store = Storage(credential_path)
         credentials = store.get()
@@ -53,26 +67,6 @@ class gdriveAPI(object):
                 status, done = downloader.next_chunk()
                 # print ("Download %d%%." % int(status.progress() * 100))
 
-    def upload_spreadsheet(self, upload_name, file_name):
-        service = self.service
-        file_metadata = {
-            'name': upload_name,
-            'mimeType': 'application/vnd.google-apps.spreadsheet'
-        }
-        media = MediaFileUpload(
-            file_name,
-            mimetype='application/vnd.ms-excel',
-            # mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            resumable=True,
-        )
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id'
-        ).execute()
-        # print ('File ID: %s' % file.get('id'))
-        return file.get('id')
-
     def upload_file(self, upload_name, file_name, mimetype, parent_id=None):
         service = self.service
         file_metadata = {'name': upload_name}
@@ -90,6 +84,31 @@ class gdriveAPI(object):
             fields='id'
         ).execute()
         # print ('File ID: %s' % file.get('id'))
+        return file.get('id')
+
+    def upload_spreadsheet(self, upload_name, file_name, parent_id=None):
+        service = self.service
+        file_metadata = {
+            'name': upload_name,
+            'mimeType': 'application/vnd.google-apps.spreadsheet'
+        }
+        if parent_id:
+            if type(parent_id) is list:
+                file_metadata['parents'] = parent_id
+            else:
+                file_metadata['parents'] = [parent_id,]
+
+        media = MediaFileUpload(
+            file_name,
+            mimetype='application/vnd.ms-excel',
+            resumable=True,
+        )
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+
         return file.get('id')
 
     def create_folder(self, folder_name, parent_id=None):
@@ -220,55 +239,47 @@ class gdriveAPI(object):
 
         file_id = pobject.main_file
         self.download_file(file_id, full_file_name, False)
-        wb = xlrd.open_workbook(full_file_name, on_demand=True)
+
+        id = self.upload_spreadsheet(
+            upload_name=full_file_name,
+            file_name=full_file_name,
+            parent_id=sys_val.hidden_folder
+        )
+
+        batch = service.new_batch_http_request()
+        user_permission = {
+            'type': 'anyone',
+            'role': 'reader',
+        }
+        batch.add(service.permissions().create(
+                fileId=id,
+                body=user_permission,
+                fields='id',
+        ))
+        batch.execute()
+
+        spr_service = self.spr_service
+
+        request = spr_service.spreadsheets().get(spreadsheetId=id)
+        response = request.execute()
 
         result = []
-        targetdir = ('./') #where you want your new files
-        for sheet in wb.sheets(): #cycles through each sheet in each workbook
-            newwb = copy(wb) #makes a temp copy of that book
-            newwb._Workbook__worksheets = [ worksheet for worksheet in \
-                newwb._Workbook__worksheets if worksheet.name == sheet.name ]
-            #brute force, but strips away all other sheets apart from the sheet being looked at
-            part_name = targetdir + full_file_name.split('.')[0] + '-' + sheet.name
-            part_xls_name = part_name + '.xls'
-            newwb.save(part_xls_name)
-            #saves each sheet as the original file name plus the sheet name
-            id = self.upload_spreadsheet(part_name, part_xls_name)
+        for sheet in response['sheets']:
+            download_link = ('https://docs.google.com/spreadsheets/d/%s/export?'
+                'format=pdf&'
+                'portrait=false&'
+                'gid=%s'
+            ) % (id, sheet['properties']['sheetId'])
+            result.append({
+                'name' : full_file_name.split('.')[0] +
+                    '-'+sheet['properties']['title'],
+                'download_link' : download_link,
+            })
 
-            pdf_name = part_name + '.pdf'
-            self.download_file(id, pdf_name, True)
-            pdf_id = self.upload_file(
-                part_name.split('/')[1],
-                pdf_name,
-                'application/pdf',
-                sys_val.hidden_folder
-            )
+        os.remove(full_file_name)
+        return result, id
 
-            # os.remove(pdf_name)
-            # os.remove(part_name + '.xls')
-            # service.files().delete(fileId=id).execute()
-
-            batch = service.new_batch_http_request()
-            user_permission = {
-                'type': 'anyone',
-                'role': 'reader',
-            }
-            batch.add(service.permissions().create(
-                    fileId=pdf_id,
-                    body=user_permission,
-                    fields='id',
-            ))
-            batch.execute()
-
-            response = self.get_file_by_id(pdf_id)
-
-            result.append(response)
-
-        # os.remove(full_file_name)
-        return result
-
-    def delete_files(self, files):
+    def delete_files(self, ids):
         service = self.service
-        for file in files:
-            if 'id' in file:
-                service.files().delete(fileId=file['id']).execute()
+        for id in ids:
+            service.files().delete(fileId=id).execute()

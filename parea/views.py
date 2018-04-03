@@ -57,6 +57,7 @@ class SyncView(View):
 
         return HttpResponse(status=200)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'parea/login.html')

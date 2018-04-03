@@ -27,6 +27,9 @@ SECRET_KEY = '6n2g+8%lp4#&ityb+91jiq0cv2cgo56$y*fny^pib0(*%fn=28'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+if DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
 
 
 # Application definition
@@ -42,6 +45,8 @@ INSTALLED_APPS = [
     'simple_history',
     'prettyjson',
     'rest_framework',
+    'corsheaders',
+    'webpack_loader',
 ]
 
 MIDDLEWARE = [
@@ -53,6 +58,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'dflk.urls'
@@ -190,4 +197,20 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     )
+}
+
+CORS_ORIGIN_WHITELIST = (
+    'localhost:3000',
+    '127.0.0.1:3000'
+)
+
+STATICFILES_DIRS = (
+	os.path.join(BASE_DIR, 'frontend'),
+)
+
+WEBPACK_LOADER = {
+	'DEFAULT': {
+	   'BUNDLE_DIR_NAME': 'bundles/',
+	   'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
+	}
 }

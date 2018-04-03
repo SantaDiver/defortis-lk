@@ -85,18 +85,24 @@ def sync_main_file_task(self, prj_object_id):
         file_name = gdrive.get_file_by_id(prj_object.main_file)['name']
         if len(file_name.split('.')) < 2:
             file_name += 'xlsx'
-        res = gdrive.split_main_file(prj_object, sys_val, file_name)
+        res, id = gdrive.split_main_file(prj_object, sys_val, file_name)
     except Exception as exc:
         self.retry(countdown=backoff(self.request.retries), exc=exc)
+        return
 
     timezone = settings.TIME_ZONE
     now = datetime.now(pytz.timezone(timezone))
     res = {
         'timestamp' : now.timestamp(),
         'links' : res,
+        'id' : id
     }
     if len(graphs) >= versions_number:
-        gdrive.delete_files(graphs[-1])
+        print('--------------------------------------------------------')
+        print([ graphs[-1]['id'] ])
+        print('--------------------------------------------------------')
+
+        gdrive.delete_files([ graphs[-1]['id'] ])
         graphs = graphs[-1:] + graphs[:-1]
         graphs[0] = res
     else:

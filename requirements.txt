@@ -11,3 +11,5 @@ redis
 gunicorn
 django-prettyjson
 djangorestframework
+django-cors-headers
+django-webpack-loader

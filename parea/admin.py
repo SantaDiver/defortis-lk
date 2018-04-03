@@ -13,7 +13,7 @@ from gdrive_api import gdriveAPI
 # Register your models here.
 
 @admin.register(Project)
-class MyAdmin(SimpleHistoryAdmin):
+class ProjectAdmin(SimpleHistoryAdmin):
     list_display = ('get_name',)
     search_fields = ('name',)
 
@@ -48,7 +48,7 @@ class ProjectObjectForm(forms.ModelForm):
             return self.cleaned_data['main_file']
 
 @admin.register(ProjectObject)
-class MyAdmin(SimpleHistoryAdmin):
+class ProjectObjectAdmin(SimpleHistoryAdmin):
     form = ProjectObjectForm
     list_display = ('get_name',)
     search_fields = ('name',)
@@ -58,7 +58,7 @@ class MyAdmin(SimpleHistoryAdmin):
     get_name.short_description = 'Название объекта'
 
 @admin.register(SystemValues)
-class MyAdmin(SimpleHistoryAdmin):
+class SystemValuesAdmin(SimpleHistoryAdmin):
     list_display = ('get_name',)
 
     def get_name(self, obj):

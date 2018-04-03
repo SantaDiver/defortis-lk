@@ -30,12 +30,12 @@ CLIENT_SECRET_FILE = '../client_secret.json'
 APPLICATION_NAME = 'Drive API Python Quickstart'
 
 def get_credentials():
-    home_dir = os.path.expanduser('.')
+    home_dir = os.path.expanduser('..')
     credential_dir = os.path.join(home_dir, 'credentials')
     if not os.path.exists(credential_dir):
         os.makedirs(credential_dir)
     credential_path = os.path.join(credential_dir,
-                                   'drive-python-quickstart.json')
+                                   'drive-creds.json')
 
     store = Storage(credential_path)
     credentials = store.get()
@@ -107,10 +107,6 @@ def main():
 
     file_id = '1452hLMZYc0Y9wBHzOk-yZuIJhuX1Pp__TAeHG2y_-M8'
 
-    full_file_name = 'some.pdf'
-    print('downloading...')
-    download_file(service, file_id, full_file_name, True)
-    print('downloaded')
 
 if __name__ == '__main__':
     main()

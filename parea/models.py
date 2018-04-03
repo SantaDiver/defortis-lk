@@ -6,6 +6,7 @@ import sys
 from pprint import pprint
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.fields import ArrayField
 
 from .utils import root_folder_name, hidden_folder_name
 sys.path.insert(0, './gdrive_api')
@@ -30,9 +31,18 @@ class Project(models.Model):
     )
     allowed_users = models.ManyToManyField(
         User,
-        verbose_name='Допущенные пользователи',
+        verbose_name='Допущены по API',
         blank=True
     )
+    editor_users = ArrayField(
+        models.CharField(
+            max_length=50,
+        ),
+        blank=True,
+        default=[],
+        verbose_name='Допущены к Google Drive',
+    )
+
     history = HistoricalRecords()
 
     def __str__(self):
@@ -51,20 +61,21 @@ def prj_call_save(sender, instance, created, *args, **kwargs):
             instance.folder_id = gdrive.create_folder(instance.name)
         instance.save()
 
-@receiver(models.signals.m2m_changed, sender=Project.allowed_users.through)
-def prj_call_m2mchanged(sender, instance, *args, **kwargs):
+# @receiver(models.signals.m2m_changed, sender=Project.allowed_users.through)
+@receiver(models.signals.post_save, sender=Project)
+def prj_call_save2(sender, instance, *args, **kwargs):
     if instance.folder_id:
         folder_id = instance.folder_id
         gdrive = gdriveAPI()
         already_allowed = gdrive.get_permited_emails(folder_id)
 
         user_permissions=[]
-        for user in instance.allowed_users.all():
-            if user.email and not user.email in already_allowed:
+        for user in instance.editor_users:
+            if user and not user in already_allowed:
                 user_permission = {
                     'type': 'user',
                     'role': 'writer',
-                    'emailAddress' : user.email
+                    'emailAddress' : user
                 }
                 user_permissions.append(user_permission)
         gdrive.give_permissions(folder_id, user_permissions)
