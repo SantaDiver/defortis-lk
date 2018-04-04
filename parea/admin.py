@@ -17,6 +17,10 @@ class ProjectAdmin(SimpleHistoryAdmin):
     list_display = ('get_name',)
     search_fields = ('name',)
 
+    formfield_overrides = {
+        JSONField: {'widget': PrettyJSONWidget }
+    }
+
     def get_name(self, obj):
         return obj.name
     get_name.short_description = 'Название проекта'

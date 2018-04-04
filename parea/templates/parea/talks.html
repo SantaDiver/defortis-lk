@@ -1,0 +1,83 @@
+{% extends "parea/base.html" %}
+
+{% block title %}{{file_type}} {{selected_project_name}}{% endblock %}
+{% block name %}{{file_type}}{% endblock %}
+
+{% load timetags %}
+{% load index %}
+{% load firstname %}
+{% load getfiles %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card strpied-tabled-with-hover">
+                    <div class="card-header ">
+                        <h4 class="card-title">{{file_type}} по проекту {{selected_project_name}}</h4>
+                        <!-- <p class="card-category">Here is a subtitle for this table</p> -->
+                    </div>
+                    <div class="card-body table-full-width table-responsive">
+                        <!-- table-hover table-striped -->
+                        <table class="table">
+                            <thead>
+                                <th>№ п/п</th>
+                                <th>Название</th>
+                                <th>Дата загрузки</th>
+                                <th>Создатель</th>
+                                <th>Ссылка для скачивания</th>
+                                {% if request.user.is_staff %}
+                                <th>Статус</th>
+                                <th>Удалить</th>
+                                {% endif %}
+                            </thead>
+                            <tbody>
+                              {% for file in selected_project.files_structure|getfiles:uri %}
+                              <tr>
+                                  <td>{{forloop.counter}}</td>
+                                  <td>{{file.name}}</td>
+                                  <td>{{file.timestamp|print_timestamp}}</td>
+                                  <td>{{file.uploader|firstname}}</td>
+                                  <td>
+                                    <a href="{{file.link}}" id="file_downloader{{forloop.counter}}" file_id={{file.id}}>
+                                    <!-- <i class="nc-icon nc-cloud-download-93"></i> -->
+                                    <p>Скачать документ</p>
+                                    </a>
+                                  </td>
+                                  {% if request.user.is_staff %}
+                                  <td>
+                                    {% if file.was_downloaded %}
+                                      Просмотрено
+                                    {% else %}
+                                      Не просмотрено
+                                    {% endif %}
+                                  </td>
+                                  <td>
+                                    <form action="./delete_file/" method="get">
+                                      <input type="hidden" name="file_id" value="{{file.id}}" />
+                                      <button type="button submit" class="btn btn-danger">Удалить</button>
+                                    </form>
+                                  </td>
+                                  {% endif %}
+                              </tr>
+                              {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <form id="upload-form1" action="./upload_file/" enctype="multipart/form-data" method="post">{% csrf_token %}
+                  <label class="btn btn-info btn-fill">
+                      Загрузить файл <input type="file" style="display: none;" id="file-uploader1" name="file">
+                  </label>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block custom_scripts %}
+<script src="{% static "parea/js/file_uploader.js" %}"></script>
+{% endblock %}

@@ -42,6 +42,15 @@ class Project(models.Model):
         default=[],
         verbose_name='Допущены к Google Drive',
     )
+    files_structure = JSONField(
+        default={
+            'talks' : [],
+            'documents' : [],
+            'information' : [],
+        },
+        blank=True,
+        verbose_name='Структура файлов',
+    )
 
     history = HistoricalRecords()
 

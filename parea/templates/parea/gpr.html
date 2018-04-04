@@ -1,0 +1,101 @@
+{% extends "parea/base.html" %}
+
+{% block title %}Графики {{selected_project_name}}{% endblock %}
+{% block name %}Графики{% endblock %}
+
+{% load timetags %}
+{% load index %}
+
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            {% if request.user.is_staff %}
+            <div class="col-md-12">
+                <div class="card strpied-tabled-with-hover">
+                    <div class="card-header ">
+                        <h4 class="card-title">Статусы синхронизации по объектам</h4>
+                        <!-- <p class="card-category">Here is a subtitle for this table</p> -->
+                    </div>
+                    <div class="card-body table-full-width table-responsive">
+                        <!-- table-hover table-striped -->
+                        <table class="table">
+                            <thead>
+                                <th>Объект</th>
+                                <th>Статус синхронизации</th>
+                            </thead>
+                            <tbody>
+                                {% for obj in prj_objects %}
+                                  <tr>
+                                      <td>{{obj.name}}</td>
+                                      <td>
+                                        {% if obj.sync_task_id %}
+                                          Синхронизируется. Пожалуйста, подождите.
+                                        {% elif obj.synced %}
+                                          Синхронизировано, изменений нет!
+                                        {% elif not obj.main_file %}
+                                          Основная таблица отсутствует или не задана!
+                                        {% else %}
+                                          <a href="/sync/{{obj.pk}}">
+                                          Есть изменения. Нажмите для синхронизации
+                                          </a>
+                                        {% endif %}
+                                      </td>
+                                  </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% for table in tables_list %}
+            <div class="col-md-12">
+                <div class="card strpied-tabled-with-hover">
+                    <div class="card-header ">
+                        <h4 class="card-title">{{table}}</h4>
+                        <!-- <p class="card-category">Here is a subtitle for this table</p> -->
+                    </div>
+                    <div class="card-body table-full-width table-responsive">
+                        <!-- table-hover table-striped -->
+                        <table class="table">
+                            <thead>
+                                <th>Объект</th>
+                                <th>Версии документа</th>
+                                <th>Ссылка для загрузки</th>
+                            </thead>
+                            <tbody>
+                                {% for obj in prj_objects %}
+                                  <tr>
+                                      <td>{{obj.name}}</td>
+                                      <td>
+                                        <table>
+                                          {% for graph in obj.files_structure.graphs %}
+                                          <tr><td>{{graph.timestamp|print_timestamp}}</td></tr>
+                                          {% endfor %}
+                                        </table>
+                                      </td>
+                                      <td>
+                                        <table>
+                                          {% for graph in obj.files_structure.graphs %}
+                                            <tr><td>
+                                              <a href="{{ graph.links|index:forloop.parentloop.parentloop.counter0 }}">
+                                                <!-- <i class="nc-icon nc-cloud-download-93"></i> -->
+                                                <p>Скачать PDF</p>
+                                              </a>
+                                            </td></tr>
+                                          {% endfor %}
+                                        </table>
+                                      </td>
+                                  </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

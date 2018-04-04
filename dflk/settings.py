@@ -204,13 +204,13 @@ CORS_ORIGIN_WHITELIST = (
     '127.0.0.1:3000'
 )
 
-STATICFILES_DIRS = (
-	os.path.join(BASE_DIR, 'frontend'),
-)
+# STATICFILES_DIRS = (
+# 	os.path.join(BASE_DIR, 'frontend'),
+# )
 
-WEBPACK_LOADER = {
-	'DEFAULT': {
-	   'BUNDLE_DIR_NAME': 'bundles/',
-	   'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
-	}
-}
+# WEBPACK_LOADER = {
+# 	'DEFAULT': {
+# 	   'BUNDLE_DIR_NAME': 'bundles/',
+# 	   'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
+# 	}
+# }

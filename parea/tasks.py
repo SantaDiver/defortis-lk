@@ -6,9 +6,12 @@ from celery import Task
 from datetime import datetime
 import pytz
 from django.conf import settings
+import os
 
 from gdrive_api import gdriveAPI
 from utils import versions_number
+
+# TODO: None main file if Trashed
 
 class BaseTask(Task):
     """Abstract base class for all tasks in my app."""
@@ -67,7 +70,7 @@ def check_main_file_changes_task(self):
 @task(
     bind=True,
     max_retries=3,
-    soft_time_limit=60,
+    soft_time_limit=600,
     base=BaseTask
 )
 def sync_main_file_task(self, prj_object_id):
@@ -98,10 +101,6 @@ def sync_main_file_task(self, prj_object_id):
         'id' : id
     }
     if len(graphs) >= versions_number:
-        print('--------------------------------------------------------')
-        print([ graphs[-1]['id'] ])
-        print('--------------------------------------------------------')
-
         gdrive.delete_files([ graphs[-1]['id'] ])
         graphs = graphs[-1:] + graphs[:-1]
         graphs[0] = res
@@ -116,3 +115,55 @@ def sync_main_file_task(self, prj_object_id):
     prj_object.save()
 
     return res
+
+@task(
+    bind=True,
+    max_retries=3,
+    soft_time_limit=600,
+    base=BaseTask
+)
+def upload_to_disk_task(self, uploader, file_path, file_name, project_id, file_type):
+    sys_val = SystemValues.objects.all()[0]
+    gdrive = gdriveAPI()
+    project = Project.objects.get(id=project_id)
+
+    try:
+        id = gdrive.upload_file(file_name, file_path, None, sys_val.hidden_folder)
+        gdrive.give_permissions(id, [{
+            'type': 'anyone',
+            'role': 'reader',
+        }])
+        link = gdrive.get_file_by_id(id)['webContentLink']
+    except Exception as exc:
+        self.retry(countdown=backoff(self.request.retries), exc=exc)
+        return
+
+    if not file_type in project.files_structure:
+        project.files_structure[file_type] = []
+
+    timezone = settings.TIME_ZONE
+    now = datetime.now(pytz.timezone(timezone))
+    new_file = {
+        'timestamp' : now.timestamp(),
+        'id' : id,
+        'name' : file_name,
+        'uploader' : uploader,
+        'link' : link,
+        'was_downloaded' : False,
+    }
+
+    project.files_structure[file_type] = [new_file] + project.files_structure[file_type]
+    project.save()
+
+    os.remove(file_path)
+    return new_file
+
+@task(
+    bind=True,
+    max_retries=3,
+    soft_time_limit=600,
+    base=BaseTask
+)
+def delete_file_task(self, file_id):
+    gdrive = gdriveAPI()
+    gdrive.delete_files([file_id])
