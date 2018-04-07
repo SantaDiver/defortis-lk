@@ -42,8 +42,8 @@
                                   <td>{{file.uploader|firstname}}</td>
                                   <td>
                                     <a href="{{file.link}}" id="file_downloader{{forloop.counter}}" file_id={{file.id}}>
-                                    <!-- <i class="nc-icon nc-cloud-download-93"></i> -->
-                                    <p>Скачать документ</p>
+                                    <i class="nc-icon nc-cloud-download-93"></i>
+                                    Скачать документ
                                     </a>
                                   </td>
                                   {% if request.user.is_staff %}

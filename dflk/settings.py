@@ -182,12 +182,12 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERYD_HIJACK_ROOT_LOGGER = False
 
 CELERY_TIMEZONE = 'Europe/Moscow'
-# CELERY_BEAT_SCHEDULE = {
-#     'check_main_file_changes_task': {
-#         'task': 'parea.tasks.check_main_file_changes_task',
-#         'schedule': timedelta(seconds=30)
-#     }
-# }
+CELERY_BEAT_SCHEDULE = {
+    'check_main_file_changes_task': {
+        'task': 'parea.tasks.check_main_file_changes_task',
+        'schedule': timedelta(seconds=30)
+    }
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (

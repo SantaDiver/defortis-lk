@@ -36,7 +36,7 @@
                 <ul class="nav">
                     <li {% if uri == 'gpr' %} class="nav-item active" {%endif%}>
                         <a class="nav-link" href="/{{selected_project_id}}/gpr">
-                            <i class="nc-icon nc-notes"></i>
+                            <i class="nc-icon nc-chart-bar-32"></i>
                             <p>Графики</p>
                         </a>
                     </li>
@@ -48,14 +48,20 @@
                     </li>
                     <li {% if uri == 'documents' %} class="nav-item active" {%endif%}>
                         <a class="nav-link" href="/{{selected_project_id}}/documents">
-                            <i class="nc-icon nc-chart-pie-35"></i>
+                            <i class="nc-icon nc-notes"></i>
                             <p>Документы</p>
                         </a>
                     </li>
                     <li {% if uri == 'information' %} class="nav-item active" {%endif%}>
                         <a class="nav-link" href="/{{selected_project_id}}/information">
-                            <i class="nc-icon nc-paper-2"></i>
+                            <i class="nc-icon nc-bulb-63"></i>
                             <p>Информация</p>
+                        </a>
+                    </li>
+                    <li {% if uri == 'photo' %} class="nav-item active" {%endif%}>
+                        <a class="nav-link" href="/{{selected_project_id}}/photo">
+                            <i class="nc-icon nc-album-2"></i>
+                            <p>Фотографии</p>
                         </a>
                     </li>
                 </ul>
@@ -98,11 +104,28 @@
 
             {% block content %}{% endblock %}
 
+            <div class="container-fluid" style="text-align:center;background-color:white; padding-top:3px;">
+
+              <h4 >Контакты официальных представителей</h4>
+
+            <div class="row" style="padding:20px;background-color:white;">
+              {% for contact in contacts %}
+                <div class="col-sm">
+                  {{contact.name}}  <br>
+                  {{contact.company}} <br>
+                  {{contact.position}} <br>
+                  Tel. {{contact.phone}} <br>
+                  {{contact.email}} <br>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
             <!-- End of Contents -->
             <footer class="footer">
-                <div class="container">
+              <div class="container">
                     <nav>
-                        <ul class="footer-menu">
+                        <!-- <ul class="footer-menu">
                             <li>
                                 <a href="#">
                                     Home
@@ -123,16 +146,16 @@
                                     Blog
                                 </a>
                             </li>
-                        </ul>
+                        </ul> -->
                         <p class="copyright text-center">
                             ©
                             <script>
                                 document.write(new Date().getFullYear())
                             </script>
-                            <a href="http://www.creative-tim.com">Creative Tim</a>, made with love for a better web
+                            S&M soft, made with love for a better web
                         </p>
                     </nav>
-                </div>
+              </div>
             </footer>
         </div>
     </div>

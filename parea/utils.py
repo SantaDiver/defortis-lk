@@ -1,4 +1,4 @@
-versions_number = 2
+versions_number = 3
 root_folder_name = 'Корневая папка'
 hidden_folder_name = 'Скрытая папка'
 

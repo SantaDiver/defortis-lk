@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Project, ProjectObject, SystemValues
+from .models import Project, ProjectObject, SystemValues, Contact
 from simple_history.admin import SimpleHistoryAdmin
 from django import forms
 from pprint import pprint
@@ -68,3 +68,11 @@ class SystemValuesAdmin(SimpleHistoryAdmin):
     def get_name(self, obj):
         return 'Системные значения'
     get_name.short_description = 'Системные значения'
+
+@admin.register(Contact)
+class ContactsAdmin(SimpleHistoryAdmin):
+    list_display = ('get_name',)
+
+    def get_name(self, obj):
+        return obj.name
+    get_name.short_description = 'Контакты'

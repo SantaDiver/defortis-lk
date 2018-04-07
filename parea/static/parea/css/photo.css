@@ -1,0 +1,15 @@
+.row {
+  display: row;
+  text-align:center;
+}
+
+.col-4 {
+  display: inline-block;
+}
+
+.photo {
+  height: 100px;
+  padding: 10px;
+  margin: 10px 5px 10px 5px;
+  background: gray;
+}

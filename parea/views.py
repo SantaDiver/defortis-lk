@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
-from parea.models import Project, ProjectObject, SystemValues
+from parea.models import Project, ProjectObject, SystemValues, Contact
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseServerError
 from celery.result import AsyncResult
@@ -102,19 +102,36 @@ def eject_data_by_prj(func):
         if not selected_project in projects:
             return HttpResponseForbidden()
         prj_objects = ProjectObject.objects.filter(project=selected_project)
-
+        contacts = Contact.objects.filter(projects__id__exact=selected_project.id)
         if not file_type:
-            return func(request, selected_project_id, projects, selected_project, prj_objects)
+            return func(
+                request,
+                selected_project_id,
+                projects,
+                selected_project,
+                prj_objects,
+                contacts
+            )
         else:
-            return func(request, selected_project_id, file_type, projects, selected_project, prj_objects)
+            return func(
+                request,
+                selected_project_id,
+                file_type,
+                projects,
+                selected_project,
+                prj_objects,
+                contacts
+            )
     return func_wrapper
 
 @login_required
 @eject_data_by_prj
-def gpr(request, selected_project_id, projects, selected_project, prj_objects):
+def gpr(request, selected_project_id, projects, selected_project, prj_objects, \
+    contacts):
     selected_project_name = selected_project.name
     return render(request, 'parea/gpr.html', {
         'projects' : projects,
+        'contacts' : contacts,
         'selected_project_id' : selected_project_id,
         'selected_project_name' : selected_project_name,
         'uri' : 'gpr',
@@ -124,10 +141,12 @@ def gpr(request, selected_project_id, projects, selected_project, prj_objects):
 
 @login_required
 @eject_data_by_prj
-def talks(request, selected_project_id, projects, selected_project, prj_objects):
+def talks(request, selected_project_id, projects, selected_project, prj_object, \
+    contacts ):
     selected_project_name = selected_project.name
     return render(request, 'parea/talks.html', {
         'projects' : projects,
+        'contacts' : contacts,
         'selected_project_id' : selected_project_id,
         'selected_project_name' : selected_project_name,
         'uri' : 'talks',
@@ -137,10 +156,12 @@ def talks(request, selected_project_id, projects, selected_project, prj_objects)
 
 @login_required
 @eject_data_by_prj
-def documents(request, selected_project_id, projects, selected_project, prj_objects):
+def documents(request, selected_project_id, projects, selected_project, prj_objects, \
+    contacts ):
     selected_project_name = selected_project.name
     return render(request, 'parea/talks.html', {
         'projects' : projects,
+        'contacts' : contacts,
         'selected_project_id' : selected_project_id,
         'selected_project_name' : selected_project_name,
         'uri' : 'documents',
@@ -150,15 +171,30 @@ def documents(request, selected_project_id, projects, selected_project, prj_obje
 
 @login_required
 @eject_data_by_prj
-def information(request, selected_project_id, projects, selected_project, prj_objects):
+def information(request, selected_project_id, projects, selected_project, prj_objects, \
+    contacts ):
     selected_project_name = selected_project.name
     return render(request, 'parea/talks.html', {
         'projects' : projects,
+        'contacts' : contacts,
         'selected_project_id' : selected_project_id,
         'selected_project_name' : selected_project_name,
         'uri' : 'information',
         'selected_project' : selected_project,
         'file_type' : 'Информация',
+    })
+
+@login_required
+@eject_data_by_prj
+def photo(request, selected_project_id, projects, selected_project, prj_objects, \
+    contacts ):
+    selected_project_name = selected_project.name
+    return render(request, 'parea/photo.html', {
+        'projects' : projects,
+        'contacts' : contacts,
+        'selected_project_id' : selected_project_id,
+        'selected_project_name' : selected_project_name,
+        'uri' : 'photo',
     })
 
 def handle_uploaded_file(f, file_path):
@@ -168,7 +204,8 @@ def handle_uploaded_file(f, file_path):
 
 @login_required
 @eject_data_by_prj
-def upload_file(request, selected_project_id, file_type, projects, selected_project, prj_objects):
+def upload_file(request, selected_project_id, file_type, projects, selected_project, \
+    prj_objects, contacts):
     if not file_type in file_types_in_structure:
         raise Http404('Bad file type!')
     uploaded_file = request.FILES['file']
@@ -188,7 +225,8 @@ def upload_file(request, selected_project_id, file_type, projects, selected_proj
 
 @login_required
 @eject_data_by_prj
-def delete_file(request, selected_project_id, file_type, projects, selected_project, prj_objects):
+def delete_file(request, selected_project_id, file_type, projects, selected_project, \
+    prj_objects, contacts):
     if not request.user.is_staff:
         return HttpResponseForbidden()
     if not file_type in file_types_in_structure:
@@ -208,7 +246,8 @@ def delete_file(request, selected_project_id, file_type, projects, selected_proj
 
 @login_required
 @eject_data_by_prj
-def download_file(request, selected_project_id, file_type, projects, selected_project, prj_objects):
+def download_file(request, selected_project_id, file_type, projects, selected_project, \
+    prj_objects, contacts):
     if not file_type in file_types_in_structure:
         raise Http404('Bad file type!')
     if not 'file_id' in request.GET:

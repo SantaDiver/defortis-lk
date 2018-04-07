@@ -195,3 +195,41 @@ def sys_vals_call_save(sender, instance, created, *args, **kwargs):
         instance.hidden_folder = gdrive.create_folder(hidden_folder_name)
         instance.changes_token = gdrive.get_start_changes_token()
         instance.save()
+
+class Contact(models.Model):
+    name = models.CharField(
+        max_length=120,
+        default='',
+        verbose_name='ФИО'
+    )
+    company = models.CharField(
+        max_length=120,
+        default='',
+        verbose_name='Компания'
+    )
+    position = models.CharField(
+        max_length=120,
+        default='',
+        verbose_name='Должность'
+    )
+    phone = models.CharField(
+        max_length=120,
+        default='',
+        verbose_name='Телефон'
+    )
+    email = models.CharField(
+        max_length=120,
+        default='',
+        blank=True,
+        verbose_name='Email'
+    )
+    projects = models.ManyToManyField(
+        Project,
+        verbose_name='Проекты',
+        blank=True
+    )
+
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return self.name
