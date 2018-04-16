@@ -1,4 +1,6 @@
 from __future__ import print_function
+
+from django.conf import settings
 import httplib2
 import os
 from pprint import pprint
@@ -9,8 +11,6 @@ from oauth2client.file import Storage
 from apiclient.http import MediaFileUpload
 import io
 from apiclient.http import MediaIoBaseDownload
-import xlrd
-from xlutils.copy import copy
 
 class gdriveAPI(object):
     # If modifying these scopes, delete your previously saved credentials
@@ -18,7 +18,7 @@ class gdriveAPI(object):
     SCOPES = 'https://www.googleapis.com/auth/drive'
     CLIENT_SECRET_FILE = 'client_secret.json'
     APPLICATION_NAME = 'Drive API Python Quickstart'
-    CREDENTIALS_FOLDER = './credentials'
+    CREDENTIALS_FOLDER = os.path.join(settings.BASE_DIR, 'credentials')
 
     def __init__(self):
         credentials = self.get_credentials('drive-creds.json')

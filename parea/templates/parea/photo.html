@@ -4,14 +4,64 @@
 {% block name %}Фотографии{% endblock %}
 
 {% load timetags %}
-{% load index %}
+{% load photoindex %}
 {% load firstname %}
 {% load getfiles %}
 {% load static %}
 
-{% block content %}
+{% block css_links %}
+<link href="{% static "parea/css/ekko-lightbox.css" %}" rel="stylesheet" />
+<link href="{% static "parea/css/photo.css" %}" rel="stylesheet" />
+{% endblock %}
 
+{% block content %}
+<div class="content">
+  <div class="container-fluid">
+    <ul class="nav nav-tabs">
+      {% for prj_obj in prj_objects %}
+        <li class="nav-item"><a class="nav-link {% if forloop.counter == 1 %}active{% endif %}" data-toggle="tab" href="#obj{{forloop.counter}}">{{prj_obj.name}}</a></li>
+      {% endfor %}
+    </ul>
+
+    <div class="tab-content">
+      {% for prj_obj in prj_objects %}
+        <div class="tab-pane {% if forloop.counter == 1 %}active{% endif %}" id="obj{{forloop.counter}}">
+          <h3>Фотографии по объекту {{prj_obj.name}}</h3>
+          <ul class="nav nav-tabs">
+            {% for date in prj_obj.photo_files_structure.dates %}
+              <li class="nav-item"><a class="nav-link {% if forloop.counter == 1 %}active{% endif %}" href="#date{{forloop.counter}}{{forloop.parentloop.counter}}" data-toggle="tab">{{date}}</a></li>
+            {% endfor %}
+          </ul>
+          <div class="tab-content">
+            {% for date in prj_obj.photo_files_structure.dates %}
+              <div class="tab-pane {% if forloop.counter == 1 %}active{% endif %}" id="date{{forloop.counter}}{{forloop.parentloop.counter}}">
+                <h3>Фото от {{date}} {{prj_obj.name}}</h3>
+                <div class="row justify-content-center">
+                  <div class="col-md-10">
+                      <div class="row">
+                          {% for photo in prj_obj.photo_files_structure.photos|photoindex:date %}
+                            <a href="https://drive.google.com/uc?export=view&id={{photo.id}}" data-type="image" data-toggle="lightbox" data-gallery="example-gallery" class="col-sm-2">
+                                <img src="https://drive.google.com/thumbnail?id={{photo.id}}" class="img-fluid">
+                            </a>
+                            {% if forloop.counter|divisibleby:6 %}
+                              </div>
+                              <div class="row">
+                            {% endif %}
+                          {% endfor %}
+                      </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block custom_scripts %}
+<script src="{% static "parea/js/ekko-lightbox.js" %}"></script>
+<script src="{% static "parea/js/photo_gallery.js" %}"></script>
 {% endblock %}

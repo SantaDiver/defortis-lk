@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import raven
 from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -35,6 +36,7 @@ if DEBUG:
 # Application definition
 
 INSTALLED_APPS = [
+    'django_su',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,6 +49,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'webpack_loader',
+    'tinymce',
+    'raven.contrib.django.raven_compat',
 ]
 
 MIDDLEWARE = [
@@ -142,6 +146,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = '/static'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 LOGIN_URL = '/login'
 LOGOUT_REDIRECT_URL = '/login'
 
@@ -185,8 +192,12 @@ CELERY_TIMEZONE = 'Europe/Moscow'
 CELERY_BEAT_SCHEDULE = {
     'check_main_file_changes_task': {
         'task': 'parea.tasks.check_main_file_changes_task',
-        'schedule': timedelta(seconds=30)
-    }
+        'schedule': timedelta(seconds=10)
+    },
+    'check_photos_task': {
+        'task': 'parea.tasks.check_photos_task',
+        'schedule': timedelta(seconds=5*60)
+    },
 }
 
 REST_FRAMEWORK = {
@@ -200,8 +211,13 @@ REST_FRAMEWORK = {
 }
 
 CORS_ORIGIN_WHITELIST = (
-    'localhost:3000',
-    '127.0.0.1:3000'
+    # 'localhost:3000',
+    # '127.0.0.1:3000'
+)
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'django_su.backends.SuBackend',
 )
 
 # STATICFILES_DIRS = (
@@ -214,3 +230,66 @@ CORS_ORIGIN_WHITELIST = (
 # 	   'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
 # 	}
 # }
+
+TINYMCE_DEFAULT_CONFIG = {
+    'theme': "advanced", # default value
+    'relative_urls': False, # default value
+    'plugins': 'table,spellchecker,paste,searchreplace',
+    'theme_advanced_buttons1': 'bold,italic,underline,bullist,numlist,link,unlink,styleselect,fontselect,fontsizeselect',
+    'width': '80%',
+    'height': 300,
+    'paste_text_sticky': True,
+    'paste_text_sticky_default': True,
+    'valid_styles': 'font-weight,font-style,text-decoration',
+    'fontsize_formats': "8pt 10pt 11pt 12pt 13pt 14pt 16pt 18pt 20pt 24pt 36pt",
+    'font_formats': "Andale Mono=andale mono,times;" +
+        "Arial=arial,helvetica,sans-serif;" +
+        "Arial Black=arial black,avant garde;" +
+        "Book Antiqua=book antiqua,palatino;" +
+        "Comic Sans MS=comic sans ms,sans-serif;" +
+        "Courier New=courier new,courier;" +
+        "Georgia=georgia,palatino;" +
+        "Helvetica=helvetica;" +
+        "Impact=impact,chicago;" +
+        "Symbol=symbol;" +
+        "Tahoma=tahoma,arial,helvetica,sans-serif;" +
+        "Terminal=terminal,monaco;" +
+        "Times New Roman=times new roman,times;" +
+        "Trebuchet MS=trebuchet ms,geneva;" +
+        "Verdana=verdana,geneva;" +
+        "Webdings=webdings;" +
+        "Wingdings=wingdings,zapf dingbats",
+}
+TINYMCE_SPELLCHECKER = True
+TINYMCE_COMPRESSOR = True
+
+RAVEN_CONFIG = {
+    'dsn': 'https://17ce996a821e4eaab4550bb7def5d8ec:b7af4ebdc1144b019c61bd218ef25fd9@sentry.io/1190227',
+    # 'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'maxBytes' : 1024*1024*5, # 5 MB
+            'filename': os.path.join(BASE_DIR, './logs/uncought_exceptions.log'),
+            'formatter':'standard',
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        }
+    },
+}

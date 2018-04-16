@@ -2,7 +2,7 @@ version: '3'
 
 services:
   nginx:
-    image: nginx:latest
+    image: nginx:1.13.12-alpine
     container_name: nginx01
     ports:
       - "80:8000"
@@ -11,19 +11,20 @@ services:
       - ./config/nginx:/etc/nginx/conf.d
       - ./config/certs:/etc/nginx/ssl
       - ./static:/static
+      - ./media:/media
     depends_on:
       - web
     restart: unless-stopped
 
   # Redis - result backend
   redis:
-    image: redis:2.8.19
+    image: redis:3.2.11-alpine
     hostname: redis
     restart: unless-stopped
 
   # RabbitMQ - queue
   rabbit:
-    hostname: rabbit
+    hostname: rabbit:3.6.15-alpine
     image: rabbitmq:3-management
     environment:
       - RABBITMQ_DEFAULT_USER=admin
@@ -34,7 +35,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres
+    image: postgres:10.3-alpine
     volumes:
         - postgres:/var/lib/postgresql/data
     restart: unless-stopped

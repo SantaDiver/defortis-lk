@@ -1,11 +1,12 @@
 from django.contrib import admin
-from .models import Project, ProjectObject, SystemValues, Contact
+from .models import Project, ProjectObject, SystemValues, Contact, VideoFrame
 from simple_history.admin import SimpleHistoryAdmin
 from django import forms
 from pprint import pprint
 import sys
 from django.contrib.postgres.fields import JSONField
 from prettyjson import PrettyJSONWidget
+from tinymce.widgets import TinyMCE
 
 sys.path.insert(0, './gdrive_api')
 sys.path.insert(0, './parea')
@@ -31,6 +32,7 @@ class ProjectObjectForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'files_structure': PrettyJSONWidget(),
+            'photo_files_structure': PrettyJSONWidget(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -76,3 +78,11 @@ class ContactsAdmin(SimpleHistoryAdmin):
     def get_name(self, obj):
         return obj.name
     get_name.short_description = 'Контакты'
+
+@admin.register(VideoFrame)
+class VideoFrameAdmin(SimpleHistoryAdmin):
+    list_display = ('get_name',)
+
+    def get_name(self, obj):
+        return obj.name
+    get_name.short_description = 'Видеотрансляции'

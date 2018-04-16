@@ -1,6 +1,7 @@
 versions_number = 3
 root_folder_name = 'Корневая папка'
 hidden_folder_name = 'Скрытая папка'
+photo_folder_name = 'Фото'
 
 tables_list = [
     'График производства работ',
@@ -9,3 +10,4 @@ tables_list = [
 ]
 
 file_types_in_structure = ['talks', 'documents', 'information']
+contacts_file_type = 'contacts'

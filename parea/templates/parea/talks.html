@@ -55,7 +55,7 @@
                                     {% endif %}
                                   </td>
                                   <td>
-                                    <form action="./delete_file/" method="get">
+                                    <form action="./delete_file/" method="post">{% csrf_token %}
                                       <input type="hidden" name="file_id" value="{{file.id}}" />
                                       <button type="button submit" class="btn btn-danger">Удалить</button>
                                     </form>

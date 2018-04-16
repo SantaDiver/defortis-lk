@@ -7,9 +7,11 @@ from datetime import datetime
 import pytz
 from django.conf import settings
 import os
+import dateutil.parser
+from raven.contrib.django.raven_compat.models import client
 
 from gdrive_api import gdriveAPI
-from utils import versions_number
+from utils import versions_number, contacts_file_type, file_types_in_structure
 
 # TODO: None main file if Trashed
 
@@ -20,10 +22,12 @@ class BaseTask(Task):
 
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         """Log the exceptions to sentry at retry."""
+        client.captureException()
         super(BaseTask, self).on_retry(exc, task_id, args, kwargs, einfo)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         """Log the exceptions to sentry."""
+        client.captureException()
         super(BaseTask, self).on_failure(exc, task_id, args, kwargs, einfo)
 
 def backoff(attempts):
@@ -38,12 +42,12 @@ def backoff(attempts):
 @task(
     bind=True,
     max_retries=3,
-    soft_time_limit=60,
+    soft_time_limit=600,
     base=BaseTask
 )
 def check_main_file_changes_task(self):
     if SystemValues.objects.count() < 1:
-        returnpprint(versions_list[0])
+        return
     else:
         sys_val = SystemValues.objects.all()[0]
 
@@ -123,6 +127,9 @@ def sync_main_file_task(self, prj_object_id):
     base=BaseTask
 )
 def upload_to_disk_task(self, uploader, file_path, file_name, project_id, file_type):
+    if not file_type in file_types_in_structure and file_type != contacts_file_type:
+        return {}
+
     sys_val = SystemValues.objects.all()[0]
     gdrive = gdriveAPI()
     project = Project.objects.get(id=project_id)
@@ -138,9 +145,6 @@ def upload_to_disk_task(self, uploader, file_path, file_name, project_id, file_t
         self.retry(countdown=backoff(self.request.retries), exc=exc)
         return
 
-    if not file_type in project.files_structure:
-        project.files_structure[file_type] = []
-
     timezone = settings.TIME_ZONE
     now = datetime.now(pytz.timezone(timezone))
     new_file = {
@@ -152,11 +156,18 @@ def upload_to_disk_task(self, uploader, file_path, file_name, project_id, file_t
         'was_downloaded' : False,
     }
 
-    project.files_structure[file_type] = [new_file] + project.files_structure[file_type]
-    project.save()
+    if not file_type in project.files_structure and file_type in file_types_in_structure:
+        project.files_structure[file_type] = []
+
+    if file_type in file_types_in_structure:
+        project.files_structure[file_type] = [new_file] + project.files_structure[file_type]
+        project.save()
 
     os.remove(file_path)
-    return new_file
+    if file_type in file_types_in_structure:
+        return new_file
+    elif file_type == contacts_file_type:
+        return link
 
 @task(
     bind=True,
@@ -167,3 +178,36 @@ def upload_to_disk_task(self, uploader, file_path, file_name, project_id, file_t
 def delete_file_task(self, file_id):
     gdrive = gdriveAPI()
     gdrive.delete_files([file_id])
+
+@task(
+    bind=True,
+    max_retries=3,
+    soft_time_limit=600,
+    base=BaseTask
+)
+def check_photos_task(self):
+    if SystemValues.objects.count() < 1:
+        return
+    else:
+        sys_val = SystemValues.objects.all()[0]
+
+    gdrive = gdriveAPI()
+
+    for prj_object in ProjectObject.objects.all():
+        photos = gdrive.get_folder_contents(prj_object.photo_folder_id)
+        dates = set()
+        photos_dict = {}
+        for photo in photos:
+            date = str(dateutil.parser.parse(photo['modifiedTime']).date())
+            photo['modifiedTime'] = date
+            if not date in dates:
+                dates.add(date)
+                photos_dict[date] = [photo]
+            else:
+                photos_dict[date].append(photo)
+
+        prj_object.photo_files_structure = {
+            'dates' : list(dates),
+            'photos' : photos_dict,
+        }
+        prj_object.save()

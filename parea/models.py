@@ -7,8 +7,9 @@ from pprint import pprint
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.fields import JSONField
 from django.contrib.postgres.fields import ArrayField
+from tinymce.models import HTMLField
 
-from .utils import root_folder_name, hidden_folder_name
+from .utils import root_folder_name, hidden_folder_name, photo_folder_name
 sys.path.insert(0, './gdrive_api')
 sys.path.insert(0, './parea')
 from gdrive_api import gdriveAPI
@@ -50,6 +51,18 @@ class Project(models.Model):
         },
         blank=True,
         verbose_name='Структура файлов',
+    )
+    main_photo = models.ImageField(
+        upload_to='parea/img/projects',
+        height_field=None,
+        width_field=None,
+        max_length=100,
+        default='',
+        verbose_name='Основное фото проекта',
+    )
+    description = HTMLField(
+        default='',
+        verbose_name='Описание проекта',
     )
 
     history = HistoricalRecords()
@@ -116,11 +129,11 @@ class ProjectObject(models.Model):
         db_index=True,
         verbose_name='Основная таблица'
     )
-
     files_structure = JSONField(default={
         'graphs' : [],
+        'documents' : [],
+        'information' : [],
     }, blank=True)
-
     sync_task_id = models.CharField(
         max_length=50,
         blank=True,
@@ -129,10 +142,22 @@ class ProjectObject(models.Model):
         unique=True,
         verbose_name='ID задачи синхронизации'
     )
-
     synced = models.BooleanField(
         default=False,
         verbose_name='Синхронизировано'
+    )
+    photo_folder_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        default=None,
+        unique=True,
+        verbose_name='ID папки с фотографиями',
+    )
+    photo_files_structure = JSONField(
+        default={},
+        blank=True,
+        verbose_name='Структура файлов с фото'
     )
 
     history = HistoricalRecords()
@@ -140,14 +165,27 @@ class ProjectObject(models.Model):
     def get_synceing(self):
         return self.sync_task_id!=None
 
+    def __str__(self):
+        return self.name + ' ' + self.project.name
+
 @receiver(models.signals.post_save, sender=ProjectObject)
 def prj_obj_call_save(sender, instance, created, *args, **kwargs):
-    if created and not instance.folder_id and instance.project.folder_id:
+    if created:
         gdrive = gdriveAPI()
-        instance.folder_id = gdrive.create_folder(
-            instance.name,
-            instance.project.folder_id
-        )
+        if not instance.folder_id and instance.project.folder_id:
+            instance.folder_id = gdrive.create_folder(
+                instance.name,
+                instance.project.folder_id
+            )
+        if not instance.photo_folder_id and instance.folder_id:
+            instance.photo_folder_id = gdrive.create_folder(
+                photo_folder_name,
+                instance.folder_id
+            )
+            gdrive.give_permissions(instance.photo_folder_id, [{
+                'type': 'anyone',
+                'role': 'reader',
+            }])
         instance.save()
 
 class SystemValues(models.Model):
@@ -189,12 +227,18 @@ class SystemValues(models.Model):
 
 @receiver(models.signals.post_save, sender=SystemValues)
 def sys_vals_call_save(sender, instance, created, *args, **kwargs):
-    if created and not instance.parent_folder:
+    if created:
         gdrive = gdriveAPI()
-        instance.parent_folder = gdrive.create_folder(root_folder_name)
-        instance.hidden_folder = gdrive.create_folder(hidden_folder_name)
+        if not instance.parent_folder:
+            instance.parent_folder = gdrive.create_folder(root_folder_name)
+        if not instance.hidden_folder:
+            instance.hidden_folder = gdrive.create_folder(hidden_folder_name)
+
         instance.changes_token = gdrive.get_start_changes_token()
         instance.save()
+
+def get_default_user():
+    return User.objects.get(id=1)
 
 class Contact(models.Model):
     name = models.CharField(
@@ -228,8 +272,36 @@ class Contact(models.Model):
         verbose_name='Проекты',
         blank=True
     )
+    document_link = models.CharField(
+        max_length=300,
+        default='',
+        verbose_name='Ссылка на утверждающий документ',
+    )
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Добавил контакт',
+        default=None,
+    )
+
 
     history = HistoricalRecords()
 
     def __str__(self):
         return self.name
+
+class VideoFrame(models.Model):
+    name = models.CharField(
+        max_length=120,
+        default='',
+        verbose_name='Название трансляции'
+    )
+    iframe = models.TextField(
+        default='',
+        verbose_name='Код для вставки',
+    )
+    prj_object = models.ForeignKey(
+        'ProjectObject',
+        on_delete=models.CASCADE,
+        verbose_name='Проект',
+    )
