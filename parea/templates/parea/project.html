@@ -1,0 +1,38 @@
+{% extends "parea/base.html" %}
+
+{% block title %}{{selected_project_name}}{% endblock %}
+{% block name %}{{selected_project_name}}{% endblock %}
+
+{% load timetags %}
+{% load photoindex %}
+{% load firstname %}
+{% load getfiles %}
+{% load static %}
+
+{% block css_links %}
+{% endblock %}
+
+{% block content %}
+<div class="content">
+  <div class="container-fluid">
+    <div class="row justify-content-md-center">
+      <div class="col-md-6">
+        <img style="width:100%" src="/media/{{selected_project.main_photo}}" alt="{{selected_project_name}}">
+      </div>
+    </div>
+  </div>
+  <div class="row justify-content-md-center">
+    <div class="col-md-6" style="text-align:center">
+      <h1>{{selected_project_name}}</h>
+    </div>
+  </div>
+  <div class="row justify-content-md-center">
+    <div class="col-md-6" >
+      <h4>{{selected_project.description | safe}}</h>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block custom_scripts %}
+{% endblock %}

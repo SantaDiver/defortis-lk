@@ -1,0 +1,127 @@
+{% extends "parea/base.html" %}
+
+{% block title %}Контакты проекта {{selected_project_name}}{% endblock %}
+{% block name %}Контакты{% endblock %}
+
+{% load timetags %}
+{% load index %}
+{% load firstname %}
+{% load getfiles %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card strpied-tabled-with-hover">
+                    <div class="card-body table-full-width table-responsive">
+                        <!-- table-hover table-striped -->
+                        <table class="table">
+                            <thead>
+                                <th>Имя</th>
+                                <th>Компания</th>
+                                <th>Должность</th>
+                                <th>Телефон</th>
+                                <th>Email</th>
+                                <th>Ссылка для загрузки документа</th>
+                                <!-- <th>Редактировать</th> -->
+                                <th>Удалить</th>
+                            </thead>
+                            <tbody>
+                                {% for contact in contacts %}
+                                  <tr>
+                                      <td>{{contact.name}}</td>
+                                      <td>{{contact.company}}</td>
+                                      <td>{{contact.position}}</td>
+                                      <td>Tel. {{contact.phone}}</td>
+                                      <td>{{contact.email}}</td>
+                                      <td>
+                                        <a href="{{contact.document_link}}">
+                                        <i class="nc-icon nc-cloud-download-93"></i>
+                                        Скачать документ
+                                        </a>
+                                      </td>
+                                      <!-- <td>
+                                      {% if request.user.is_staff or request.user == contact.creator %}
+                                        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#addContact">Редактировать</button>
+                                      {% else %}
+                                        Контакт добавил {{contact.creator.id|firstname}}
+                                      {% endif %}
+                                      </td> -->
+                                      <td>
+                                      {% if request.user.is_staff or request.user == contact.creator %}
+                                        <form action="/{{selected_project_id}}/deleteContact/" method="post">{% csrf_token %}
+                                          <input type="hidden" name="contact_id" value="{{contact.id}}" />
+                                          <button type="button submit" class="btn btn-danger">Удалить</button>
+                                        </form>
+                                      {% else %}
+                                        Контакт добавил {{contact.creator.id|firstname}}
+                                      {% endif %}
+                                      </td>
+                                  </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addContact">Добавить контакт</button>
+    </div>
+</div>
+
+
+<div class="modal fade" id="addContact" tabindex="-1" role="dialog" aria-labelledby="contactAddForm" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="contactAddForm">Добавить новый контакт</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="needs-validation" action="/{{selected_project_id}}/addContact/" method="post" enctype="multipart/form-data">{% csrf_token %}
+          <div class="form-group">
+            <label for="name" class="form-control-label">ФИО*:</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+            <!-- <div class="invalid-feedback">Укажите ФИО контакта</div> -->
+          </div>
+          <div class="form-group">
+            <label for="company" class="form-control-label">Организация*:</label>
+            <input type="text" class="form-control" id="company" name="company" required>
+            <!-- <div class="invalid-feedback">Укажите организацию контакта</div> -->
+          </div>
+          <div class="form-group">
+            <label for="position" class="form-control-label">Должность*:</label>
+            <input type="text" class="form-control" id="position" name="position" required>
+            <!-- <div class="invalid-feedback">Укажите должность контакта</div> -->
+          </div>
+          <div class="form-group">
+            <label for="tel" class="form-control-label">Телефон*:</label>
+            <input type="text" class="form-control" id="tel" name="tel" required>
+            <!-- <div class="invalid-feedback">Укажите телефон контакта</div> -->
+          </div>
+          <div class="form-group">
+            <label for="email" class="form-control-label">Email:</label>
+            <input type="text" class="form-control" id="email" name="email" required>
+            <!-- <div class="invalid-feedback">Укажите телефон контакта</div> -->
+          </div>
+          <div class="form-group">
+            <label for="file">Утверждающий документ*:</label>
+            <input type="file" class="form-control-file" id="file" name="file" required>
+            <!-- <div class="invalid-feedback">Пожалуйста, прикрепите утверждающий документ.</div> -->
+          </div>
+          <button class="btn btn-primary" type="submit" style="float:right;">Добавить контакт</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block custom_scripts %}
+<script src="{% static "parea/js/contacts.js" %}"></script>
+{% endblock %}
