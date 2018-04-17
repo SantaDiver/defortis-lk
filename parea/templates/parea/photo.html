@@ -40,7 +40,7 @@
                   <div class="col-md-10">
                       <div class="row">
                           {% for photo in prj_obj.photo_files_structure.photos|photoindex:date %}
-                            <a href="https://drive.google.com/uc?export=view&id={{photo.id}}" data-type="image" data-toggle="lightbox" data-gallery="example-gallery" class="col-sm-2">
+                            <a href="https://drive.google.com/uc?export=view&id={{photo.id}}" data-type="image" data-toggle="lightbox" data-gallery="gallery-{{forloop.parentloop.parentloop.counter0}}{{forloop.parentloop.counter0}}" class="col-sm-2">
                                 <img src="https://drive.google.com/thumbnail?id={{photo.id}}" class="img-fluid">
                             </a>
                             {% if forloop.counter|divisibleby:6 %}
