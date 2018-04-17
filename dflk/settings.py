@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '6n2g+8%lp4#&ityb+91jiq0cv2cgo56$y*fny^pib0(*%fn=28'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['46.229.212.20', 'lk.ag-rugs.ru']
 if DEBUG:
@@ -263,10 +263,12 @@ TINYMCE_DEFAULT_CONFIG = {
 TINYMCE_SPELLCHECKER = True
 TINYMCE_COMPRESSOR = True
 
-# RAVEN_CONFIG = {
-#     'dsn': 'https://17ce996a821e4eaab4550bb7def5d8ec:b7af4ebdc1144b019c61bd218ef25fd9@sentry.io/1190227',
-#     # 'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
-# }
+RAVEN_CONFIG = {
+    'dsn': 'https://17ce996a821e4eaab4550bb7def5d8ec:b7af4ebdc1144b019c61bd218ef25fd9@sentry.io/1190227',
+    # 'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
+}
+if DEBUG:
+    RAVEN_CONFIG = {}
 
 LOGGING = {
     'version': 1,
