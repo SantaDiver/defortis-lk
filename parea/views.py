@@ -97,12 +97,12 @@ def default_redirect(request):
 
 def eject_data_by_prj(func):
     def func_wrapper(request, selected_project_id, file_type=None):
-        projects = Project.objects.filter(allowed_users__id__exact=request.user.id)
+        projects = Project.objects.filter(allowed_users__id__exact=request.user.id).order_by('pk')
         selected_project = get_object_or_404(Project, id=selected_project_id)
         if not selected_project in projects:
             return HttpResponseForbidden()
-        prj_objects = ProjectObject.objects.filter(project=selected_project)
-        contacts = Contact.objects.filter(projects__id__exact=selected_project.id)
+        prj_objects = ProjectObject.objects.filter(project=selected_project).order_by('pk')
+        contacts = Contact.objects.filter(projects__id__exact=selected_project.id).order_by('pk')
         if not file_type:
             return func(
                 request,

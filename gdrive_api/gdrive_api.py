@@ -137,7 +137,7 @@ class gdriveAPI(object):
             try:
                 response = service.files().list(
                     q="trashed != True and \
-                    parents in %r" % folder_id,
+                    %r in parents" % folder_id,
 
                     spaces='drive',
                     fields='nextPageToken, files(id, name, modifiedTime, webContentLink)',
