@@ -82,7 +82,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A dflk beat -l info
+    command: bash -c "
+      rm -rf celerybeat.pid celerybeat-schedule
+      && celery -A dflk beat -l info"
     volumes:
       - .:/code
     links:

@@ -198,7 +198,12 @@ def check_photos_task(self):
         dates = set()
         photos_dict = {}
         for photo in photos:
-            date = str(dateutil.parser.parse(photo['modifiedTime']).date())
+            dt = dateutil.parser.parse(photo['modifiedTime'])
+            timezone = settings.TIME_ZONE
+            tz = pytz.timezone(timezone)
+            dt = dt.astimezone(tz)
+            date = str(dt.date())
+
             photo['modifiedTime'] = date
             if not date in dates:
                 dates.add(date)
