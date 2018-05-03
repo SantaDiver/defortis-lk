@@ -11,9 +11,6 @@ from apiclient.http import MediaFileUpload
 import io
 from apiclient.http import MediaIoBaseDownload
 
-import xlrd
-from xlutils.copy import copy
-
 try:
     import argparse
     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
