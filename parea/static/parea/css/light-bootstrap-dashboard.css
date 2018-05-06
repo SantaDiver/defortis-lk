@@ -215,13 +215,16 @@ body,
 }
 
 a {
-    color: #1DC7EA;
+    color: #2d6482;
 }
 
 a:hover,
 a:focus {
-    color: #42d0ed;
-    text-decoration: none;
+    color: #000000;
+}
+
+.alink {
+  text-decoration: underline;
 }
 
 a:focus,
@@ -646,6 +649,20 @@ body>.navbar-collapse[data-color="blue"]:after {
     background-size: 150% 150%;
 }
 
+/* CUSTOM KOLOR */
+.sidebar[data-color="defortis-custom"]:after,
+body>.navbar-collapse[data-color="defortis-custom"]:after {
+    background: #2d6482;
+    background: -moz-linear-gradient(top, #2d6482 0%, #cccccc 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #1F77D0), color-stop(100%, #533ce1));
+    background: -webkit-linear-gradient(top, #2d6482 0%, #cccccc 100%);
+    background: -o-linear-gradient(top, #2d6482 0%, #cccccc 100%);
+    background: -ms-linear-gradient(top, #2d6482 0%, #cccccc 100%);
+    background: linear-gradient(to bottom, #2d6482 0%, #cccccc 100%);
+    background-size: 150% 150%;
+}
+/* EBAT' OHUENNO VIGLYADIT */
+
 .sidebar[data-color="azure"]:after,
 body>.navbar-collapse[data-color="azure"]:after {
     background: #1DC7EA;
@@ -1049,8 +1066,8 @@ fieldset[disabled] .btn-success.active {
 }
 
 .btn-info {
-    border-color: #1DC7EA;
-    color: #1DC7EA;
+    border-color: #2d6482;
+    color: #2d6482;
 }
 
 .btn-info:hover,
@@ -1059,8 +1076,8 @@ fieldset[disabled] .btn-success.active {
 .btn-info.active,
 .open>.btn-info.dropdown-toggle {
     background-color: transparent;
-    color: #42d0ed;
-    border-color: #42d0ed;
+    color: #000000;
+    border-color: #000000;
 }
 
 .btn-info.disabled,

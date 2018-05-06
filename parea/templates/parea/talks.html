@@ -41,7 +41,7 @@
                                   <td>{{file.timestamp|print_timestamp}}</td>
                                   <td>{{file.uploader|firstname}}</td>
                                   <td>
-                                    <a href="{{file.link}}" id="file_downloader{{forloop.counter}}" file_id={{file.id}}>
+                                    <a href="{{file.link}}" id="file_downloader{{forloop.counter}}" file_id={{file.id}} class="alink">
                                     <i class="nc-icon nc-cloud-download-93"></i>
                                     Скачать документ
                                     </a>
@@ -68,7 +68,7 @@
                     </div>
                 </div>
                 <form id="upload-form1" action="./upload_file/" enctype="multipart/form-data" method="post">{% csrf_token %}
-                  <label class="btn btn-info btn-fill">
+                  <label class="btn btn-info">
                       Загрузить файл <input type="file" style="display: none;" id="file-uploader1" name="file">
                   </label>
                 </form>

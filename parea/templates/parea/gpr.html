@@ -36,7 +36,7 @@
                                         {% elif not obj.main_file %}
                                           Основная таблица отсутствует или не задана!
                                         {% else %}
-                                          <a href="/sync/{{obj.pk}}">
+                                          <a href="/sync/{{obj.pk}}" class="alink">
                                           Есть изменения. Нажмите для синхронизации
                                           </a>
                                         {% endif %}
@@ -79,7 +79,7 @@
                                         <table>
                                           {% for graph in obj.files_structure.graphs %}
                                             <tr><td>
-                                              <a href="{{ graph.links|index:forloop.parentloop.parentloop.counter0 }}">
+                                              <a href="{{ graph.links|index:forloop.parentloop.parentloop.counter0 }}" class="alink">
                                                 <i class="nc-icon nc-cloud-download-93"></i>
                                                 Скачать PDF
                                               </a>

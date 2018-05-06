@@ -37,7 +37,7 @@
                                       <td>Tel. {{contact.phone}}</td>
                                       <td>{{contact.email}}</td>
                                       <td>
-                                        <a href="{{contact.document_link}}">
+                                        <a href="{{contact.document_link}}" class="alink">
                                         <i class="nc-icon nc-cloud-download-93"></i>
                                         Скачать документ
                                         </a>
@@ -67,7 +67,7 @@
                 </div>
             </div>
         </div>
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addContact">Добавить контакт</button>
+        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#addContact">Добавить контакт</button>
     </div>
 </div>
 
@@ -113,7 +113,7 @@
             <input type="file" class="form-control-file" id="file" name="file" required>
             <!-- <div class="invalid-feedback">Пожалуйста, прикрепите утверждающий документ.</div> -->
           </div>
-          <button class="btn btn-primary" type="submit" style="float:right;">Добавить контакт</button>
+          <button class="btn btn-info" type="submit" style="float:right;">Добавить контакт</button>
         </form>
       </div>
 
