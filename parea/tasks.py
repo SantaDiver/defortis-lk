@@ -212,7 +212,7 @@ def check_photos_task(self):
                 photos_dict[date].append(photo)
 
         prj_object.photo_files_structure = {
-            'dates' : list(dates),
+            'dates' : sorted(dates, reverse=True),
             'photos' : photos_dict,
         }
         prj_object.save()
