@@ -16,3 +16,4 @@ django-su==0.6.0
 Pillow==5.1.0
 django-tinymce==2.7.0
 raven==6.6.0
+kombu==4.1.0
