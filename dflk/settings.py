@@ -27,7 +27,7 @@ SECRET_KEY = '6n2g+8%lp4#&ityb+91jiq0cv2cgo56$y*fny^pib0(*%fn=28'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['lk.defortis-group.ru', 'www.lk.defortis-group.ru', '195.24.65.27']
+ALLOWED_HOSTS = ['lk.defortis-group.ru', 'www.lk.defortis-group.ru', '176.57.220.119']
 if DEBUG:
     ALLOWED_HOSTS = ['*']
 
